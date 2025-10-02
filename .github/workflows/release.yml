@@ -79,10 +79,10 @@ jobs:
         draft: false
         prerelease: false
     
-    - name: Publish to NPM
+    - name: Publish to GitHub Packages
       run: npm publish
       env:
-        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
     
     - name: Update package version
       run: |
