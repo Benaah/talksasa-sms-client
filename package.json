@@ -1,0 +1,73 @@
+{
+  "name": "talksasa-sms-client",
+  "version": "1.0.0",
+  "description": "A comprehensive JavaScript/TypeScript client for the TalkSASA SMS Gateway API",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**/*.ts",
+    "lint:fix": "eslint src/**/*.ts --fix",
+    "security:audit": "npm audit",
+    "security:audit:fix": "npm audit fix",
+    "security:check": "npm audit && npm run lint",
+    "security:update": "npm update",
+    "prepublishOnly": "npm run security:check && npm run build"
+  },
+  "keywords": [
+    "sms",
+    "gateway",
+    "talksasa",
+    "api",
+    "client",
+    "typescript",
+    "javascript",
+    "messaging"
+  ],
+  "author": "TalkSASA SMS Client Contributors",
+  "license": "MIT",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "os": [
+    "darwin",
+    "linux",
+    "win32"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Benaah/talksasa-sms-client.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Benaah/talksasa-sms-client/issues"
+  },
+  "homepage": "https://github.com/Benaah/talksasa-sms-client#readme",
+  "dependencies": {
+    "axios": "^1.12.2"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "@types/node": "^24.6.2",
+    "@typescript-eslint/eslint-plugin": "^8.45.0",
+    "@typescript-eslint/parser": "^8.45.0",
+    "eslint": "^9.36.0",
+    "eslint-plugin-security": "^2.1.0",
+    "jest": "^30.2.0",
+    "ts-jest": "^29.4.4",
+    "typescript": "^5.9.3"
+  }
+}
