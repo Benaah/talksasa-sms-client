@@ -37,6 +37,6 @@ jobs:
     - name: Auto-merge Dependabot PRs
       uses: fastify/github-action-merge-dependabot@v3
       with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+        github-token: ${{ secrets.PACKAGE_TOKEN }}
         target: minor
         merge-method: squash
