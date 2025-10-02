@@ -4,18 +4,7 @@
 
 import { TalkSASAClient } from '../src/talksasa-client';
 import { TalkSASAValidationError, TalkSASAAuthenticationError } from '../src/errors';
-import axios from 'axios';
-
-// Jest types
-declare const jest: any;
-declare const describe: any;
-declare const it: any;
-declare const expect: any;
-declare const beforeEach: any;
-
-// Mock axios
-jest.mock('axios');
-const mockedAxios = axios as any;
+import { mockedAxios } from './setup';
 
 describe('TalkSASAClient - Contacts API', () => {
   let client: TalkSASAClient;
@@ -25,6 +14,21 @@ describe('TalkSASAClient - Contacts API', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock axios.create to return a mock instance
+    mockedAxios.create.mockReturnValue({
+      request: jest.fn(),
+      interceptors: {
+        request: { use: jest.fn() },
+        response: { use: jest.fn() }
+      },
+      defaults: {
+        headers: {
+          common: {}
+        }
+      }
+    } as any);
+    
     client = new TalkSASAClient({ apiKey: mockApiKey });
   });
 

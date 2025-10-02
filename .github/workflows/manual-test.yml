@@ -1,0 +1,97 @@
+name: Manual Testing
+
+on:
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+        - all
+        - unit
+        - integration
+        - security
+        - build
+      node_version:
+        description: 'Node.js version to test'
+        required: true
+        default: '20.x'
+        type: choice
+        options:
+        - '18.x'
+        - '20.x'
+        - '21.x'
+
+jobs:
+  manual-test:
+    name: Manual Test - ${{ inputs.test_type }}
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js ${{ inputs.node_version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node_version }}
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run unit tests
+      if: inputs.test_type == 'unit' || inputs.test_type == 'all'
+      run: npm test
+    
+    - name: Run integration tests
+      if: inputs.test_type == 'integration' || inputs.test_type == 'all'
+      run: |
+        echo "Running integration tests..."
+        npm run build
+        node -e "
+          const { TalkSASAClient } = require('./dist/index.js');
+          console.log('Integration test: Package loads successfully');
+          console.log('Available methods:', Object.getOwnPropertyNames(TalkSASAClient.prototype).length);
+        "
+    
+    - name: Run security tests
+      if: inputs.test_type == 'security' || inputs.test_type == 'all'
+      run: |
+        echo "Running security tests..."
+        npm run security:audit
+        npm run security:check
+    
+    - name: Run build test
+      if: inputs.test_type == 'build' || inputs.test_type == 'all'
+      run: |
+        echo "Running build test..."
+        npm run build
+        echo "Build completed successfully"
+        ls -la dist/
+    
+    - name: Test package loading
+      if: inputs.test_type == 'all'
+      run: |
+        echo "Testing package loading..."
+        node -e "
+          try {
+            const pkg = require('./dist/index.js');
+            console.log('Package loads successfully');
+            console.log('Main exports:', Object.keys(pkg));
+          } catch (error) {
+            console.error('Package loading failed:', error.message);
+            process.exit(1);
+          }
+        "
+    
+    - name: Generate test report
+      if: always()
+      run: |
+        echo "Test Report Generated"
+        echo "Test Type: ${{ inputs.test_type }}"
+        echo "Node Version: ${{ inputs.node_version }}"
+        echo "Status: ${{ job.status }}"
+        echo "Timestamp: $(date)"

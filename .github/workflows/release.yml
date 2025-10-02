@@ -1,0 +1,107 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., v1.0.0)'
+        required: true
+        type: string
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run tests
+      run: npm test
+    
+    - name: Build package
+      run: npm run build
+    
+    - name: Generate changelog
+      id: changelog
+      run: |
+        echo "Generating changelog..."
+        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+          VERSION="${{ github.event.inputs.version }}"
+        else
+          VERSION="${{ github.ref_name }}"
+        fi
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        
+        # Generate changelog from git commits
+        echo "## What's New in $VERSION" > CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "### Features" >> CHANGELOG.md
+        git log --pretty=format:"- %s" --grep="feat:" --since="1 month ago" >> CHANGELOG.md || echo "- No new features" >> CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "### Bug Fixes" >> CHANGELOG.md
+        git log --pretty=format:"- %s" --grep="fix:" --since="1 month ago" >> CHANGELOG.md || echo "- No bug fixes" >> CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "### Improvements" >> CHANGELOG.md
+        git log --pretty=format:"- %s" --grep="improve:" --since="1 month ago" >> CHANGELOG.md || echo "- No improvements" >> CHANGELOG.md
+        echo "" >> CHANGELOG.md
+        echo "### Security" >> CHANGELOG.md
+        git log --pretty=format:"- %s" --grep="security:" --since="1 month ago" >> CHANGELOG.md || echo "- No security updates" >> CHANGELOG.md
+        
+        echo "Changelog generated:"
+        cat CHANGELOG.md
+    
+    - name: Create GitHub Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.changelog.outputs.version }}
+        release_name: TalkSASA SMS Client ${{ steps.changelog.outputs.version }}
+        body_path: CHANGELOG.md
+        draft: false
+        prerelease: false
+    
+    - name: Publish to NPM
+      run: npm publish
+      env:
+        NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    
+    - name: Update package version
+      run: |
+        VERSION="${{ steps.changelog.outputs.version }}"
+        # Remove 'v' prefix if present
+        VERSION=${VERSION#v}
+        
+        # Update package.json version
+        npm version $VERSION --no-git-tag-version
+        
+        # Commit and push version update
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add package.json package-lock.json
+        git commit -m "chore: bump version to $VERSION" || exit 0
+        git push
+    
+    - name: Notify release
+      run: |
+        echo "Release ${{ steps.changelog.outputs.version }} published successfully!"
+        echo "NPM Package: https://www.npmjs.com/package/talksasa-sms-client"
+        echo "GitHub Release: https://github.com/${{ github.repository }}/releases/tag/${{ steps.changelog.outputs.version }}"

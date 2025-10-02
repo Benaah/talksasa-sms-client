@@ -4,11 +4,7 @@
 
 import { TalkSASAClient } from '../src/talksasa-client';
 import { TalkSASAValidationError, TalkSASAAuthenticationError } from '../src/errors';
-import axios from 'axios';
-
-// Mock axios
-jest.mock('axios');
-const mockedAxios = axios as jest.Mocked<typeof axios>;
+import { mockedAxios } from './setup';
 
 describe('TalkSASAClient', () => {
   let client: TalkSASAClient;
@@ -16,6 +12,21 @@ describe('TalkSASAClient', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Mock axios.create to return a mock instance
+    mockedAxios.create.mockReturnValue({
+      request: jest.fn(),
+      interceptors: {
+        request: { use: jest.fn() },
+        response: { use: jest.fn() }
+      },
+      defaults: {
+        headers: {
+          common: {}
+        }
+      }
+    } as any);
+    
     client = new TalkSASAClient({ apiKey: mockApiKey });
   });
 
@@ -40,34 +51,44 @@ describe('TalkSASAClient', () => {
     it('should send SMS successfully', async () => {
       const mockResponse = {
         data: {
-          success: true,
-          messageId: 'msg_123',
-          status: 'sent'
+          status: 'success',
+          data: { message: 'SMS sent successfully' }
         },
         status: 200
       };
 
+      // Mock the request method to return our mock response
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
       mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
+        request: mockRequest,
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
       const result = await client.sendSMS({
-        to: '+1234567890',
+        recipient: '+1234567890',
+        sender_id: 'TestSender',
+        type: 'plain',
         message: 'Test message'
       });
 
-      expect(result.success).toBe(true);
-      expect(result.messageId).toBe('msg_123');
+      expect(result.status).toBe('success');
+      expect(result.data).toBeDefined();
     });
 
     it('should throw validation error for invalid phone number', async () => {
       await expect(
         client.sendSMS({
-          to: 'invalid-phone',
+          recipient: 'invalid-phone',
+          sender_id: 'TestSender',
+          type: 'plain',
           message: 'Test message'
         })
       ).rejects.toThrow(TalkSASAValidationError);
@@ -76,7 +97,9 @@ describe('TalkSASAClient', () => {
     it('should throw validation error for empty message', async () => {
       await expect(
         client.sendSMS({
-          to: '+1234567890',
+          recipient: '+1234567890',
+          sender_id: 'TestSender',
+          type: 'plain',
           message: ''
         })
       ).rejects.toThrow(TalkSASAValidationError);
@@ -100,47 +123,48 @@ describe('TalkSASAClient', () => {
 
       await expect(
         client.sendSMS({
-          to: '+1234567890',
+          recipient: '+1234567890',
+          sender_id: 'TestSender',
+          type: 'plain',
           message: 'Test message'
         })
       ).rejects.toThrow(TalkSASAAuthenticationError);
     });
   });
 
-  describe('sendBulkSMS', () => {
-    it('should send bulk SMS successfully', async () => {
+  describe('sendCampaignSMS', () => {
+    it('should send campaign SMS successfully', async () => {
       const mockResponse = {
         data: {
-          success: true,
-          messageIds: ['msg_1', 'msg_2'],
-          status: 'sent'
+          status: 'success',
+          data: { message: 'Campaign sent successfully' }
         },
         status: 200
       };
 
+      // Mock the request method to return our mock response
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
       mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
+        request: mockRequest,
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const result = await client.sendBulkSMS({
-        messages: [
-          { to: '+1234567890', message: 'Message 1' },
-          { to: '+0987654321', message: 'Message 2' }
-        ]
+      const result = await client.sendCampaign({
+        contact_list_id: 'list_123',
+        sender_id: 'TestSender',
+        type: 'plain',
+        message: 'Campaign message'
       });
 
-      expect(result.success).toBe(true);
-      expect(result.messageIds).toEqual(['msg_1', 'msg_2']);
-    });
-
-    it('should throw validation error for empty messages array', async () => {
-      await expect(
-        client.sendBulkSMS({ messages: [] })
-      ).rejects.toThrow(TalkSASAValidationError);
+      expect(result.status).toBe('success');
     });
   });
 

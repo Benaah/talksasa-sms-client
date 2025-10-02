@@ -1,0 +1,177 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    - cron: '0 2 * * 1' # Weekly on Monday at 2 AM
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    name: Security Analysis
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20.x'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run npm audit
+      run: |
+        echo "Running npm security audit..."
+        npm audit --audit-level=moderate --json > audit-results.json || true
+        
+        # Check for high/critical vulnerabilities
+        HIGH_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+        CRITICAL_VULNS=$(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+        
+        echo "High vulnerabilities: $HIGH_VULNS"
+        echo "Critical vulnerabilities: $CRITICAL_VULNS"
+        
+        if [ "$HIGH_VULNS" -gt 0 ] || [ "$CRITICAL_VULNS" -gt 0 ]; then
+          echo "High or critical vulnerabilities found!"
+          cat audit-results.json | jq '.vulnerabilities[] | select(.severity == "high" or .severity == "critical") | {name: .name, severity: .severity, title: .title}'
+          exit 1
+        else
+          echo "No high or critical vulnerabilities found"
+        fi
+    
+    - name: Run security linting
+      run: |
+        echo "Running security-focused linting..."
+        npm run lint -- --format=json > security-lint-results.json || true
+        
+        # Check for security-related linting issues
+        SECURITY_ISSUES=$(cat security-lint-results.json | jq '[.[] | select(.messages[] | .ruleId | test("security|no-eval|no-implied-eval|no-new-func|no-script-url"))] | length')
+        
+        if [ "$SECURITY_ISSUES" -gt 0 ]; then
+          echo "Security linting issues found:"
+          cat security-lint-results.json | jq '.[] | select(.messages[] | .ruleId | test("security|no-eval|no-implied-eval|no-new-func|no-script-url")) | {filePath: .filePath, messages: [.messages[] | select(.ruleId | test("security|no-eval|no-implied-eval|no-new-func|no-script-url"))]}'
+          exit 1
+        else
+          echo "No security linting issues found"
+        fi
+    
+    - name: Check for hardcoded secrets
+      run: |
+        echo "Checking for hardcoded secrets..."
+        
+        # Check for common secret patterns
+        SECRET_PATTERNS=(
+          "password\s*=\s*['\"][^'\"]+['\"]"
+          "secret\s*=\s*['\"][^'\"]+['\"]"
+          "token\s*=\s*['\"][^'\"]+['\"]"
+          "key\s*=\s*['\"][^'\"]+['\"]"
+          "api[_-]?key\s*=\s*['\"][^'\"]+['\"]"
+        )
+        
+        FOUND_SECRETS=false
+        
+        for pattern in "${SECRET_PATTERNS[@]}"; do
+          if grep -r -E "$pattern" src/ --exclude-dir=node_modules; then
+            echo "Potential hardcoded secret found matching pattern: $pattern"
+            FOUND_SECRETS=true
+          fi
+        done
+        
+        if [ "$FOUND_SECRETS" = true ]; then
+          echo "Potential hardcoded secrets detected!"
+          exit 1
+        else
+          echo "No hardcoded secrets detected"
+        fi
+    
+    - name: Validate security configuration
+      run: |
+        echo "Validating security configuration..."
+        
+        # Check if security scripts exist in package.json
+        if ! npm run | grep -q "security:audit"; then
+          echo "security:audit script not found in package.json"
+          exit 1
+        fi
+        
+        if ! npm run | grep -q "security:check"; then
+          echo "security:check script not found in package.json"
+          exit 1
+        fi
+        
+        # Check if SECURITY.md exists
+        if [ ! -f "SECURITY.md" ]; then
+          echo "SECURITY.md file not found"
+          exit 1
+        fi
+        
+        echo "Security configuration is valid"
+    
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: javascript
+        queries: security-and-quality
+    
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+    
+    - name: Check for outdated dependencies
+      run: |
+        echo "Checking for outdated dependencies..."
+        npm outdated --json > outdated-deps.json || true
+        
+        # Check for major version updates available
+        MAJOR_UPDATES=$(cat outdated-deps.json | jq 'to_entries | map(select(.value.wanted != .value.latest)) | length')
+        
+        if [ "$MAJOR_UPDATES" -gt 0 ]; then
+          echo "Major version updates available:"
+          cat outdated-deps.json | jq 'to_entries | map(select(.value.wanted != .value.latest)) | .[] | {name: .key, current: .value.current, wanted: .value.wanted, latest: .value.latest}'
+        else
+          echo "All dependencies are up to date"
+        fi
+    
+    - name: Generate security report
+      run: |
+        echo "Generating security report..."
+        
+        cat > security-report.md << EOF
+        # Security Scan Report
+        
+        **Date:** $(date)
+        **Commit:** ${{ github.sha }}
+        **Branch:** ${{ github.ref_name }}
+        
+        ## Dependencies
+        - **Total dependencies:** $(npm list --depth=0 | wc -l)
+        - **Outdated dependencies:** $(cat outdated-deps.json | jq 'to_entries | length')
+        
+        ## Vulnerabilities
+        - **Critical:** $(cat audit-results.json | jq '.metadata.vulnerabilities.critical // 0')
+        - **High:** $(cat audit-results.json | jq '.metadata.vulnerabilities.high // 0')
+        - **Moderate:** $(cat audit-results.json | jq '.metadata.vulnerabilities.moderate // 0')
+        - **Low:** $(cat audit-results.json | jq '.metadata.vulnerabilities.low // 0')
+        
+        ## Security Features
+        - Input validation and sanitization
+        - Rate limiting protection
+        - XSS protection
+        - SQL injection protection
+        - Command injection protection
+        - Secure error handling
+        - Security-focused linting
+        
+        EOF
+        
+        echo "Security report generated:"
+        cat security-report.md

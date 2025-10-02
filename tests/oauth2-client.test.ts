@@ -4,18 +4,7 @@
 
 import { TalkSASAOAuth2Client } from '../src/oauth2-client';
 import { TalkSASAValidationError, TalkSASAAuthenticationError } from '../src/errors';
-import axios from 'axios';
-
-// Jest types
-declare const jest: any;
-declare const describe: any;
-declare const it: any;
-declare const expect: any;
-declare const beforeEach: any;
-
-// Mock axios
-jest.mock('axios');
-const mockedAxios = axios as any;
+import { mockedAxios } from './setup';
 
 describe('TalkSASAOAuth2Client', () => {
   let client: TalkSASAOAuth2Client;
@@ -24,6 +13,24 @@ describe('TalkSASAOAuth2Client', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    
+    // Create a mock request function that can be configured per test
+    const mockRequest = jest.fn();
+    
+    // Mock axios.create to return a mock instance
+    mockedAxios.create.mockReturnValue({
+      request: mockRequest,
+      interceptors: {
+        request: { use: jest.fn() },
+        response: { use: jest.fn() }
+      },
+      defaults: {
+        headers: {
+          common: {}
+        }
+      }
+    } as any);
+    
     client = new TalkSASAOAuth2Client({
       clientId: mockClientId,
       clientSecret: mockClientSecret
@@ -60,13 +67,9 @@ describe('TalkSASAOAuth2Client', () => {
         status: 200
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() }
-        }
-      } as any);
+      // Configure the mock request to return our response
+      const mockInstance = mockedAxios.create();
+      mockInstance.request.mockResolvedValue(mockResponse);
 
       const token = await client.getAccessToken();
       expect(token).toBe('test-access-token');
@@ -80,13 +83,9 @@ describe('TalkSASAOAuth2Client', () => {
         }
       };
 
-      mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockRejectedValue(mockError),
-        interceptors: {
-          request: { use: jest.fn() },
-          response: { use: jest.fn() }
-        }
-      } as any);
+      // Configure the mock request to reject with our error
+      const mockInstance = mockedAxios.create();
+      mockInstance.request.mockRejectedValue(mockError);
 
       await expect(client.getAccessToken()).rejects.toThrow(TalkSASAAuthenticationError);
     });
