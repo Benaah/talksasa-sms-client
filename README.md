@@ -677,6 +677,80 @@ const client = new TalkSASAClient({
 });
 ```
 
+## Account Management Dashboard
+
+This package includes a professional web-based dashboard for managing your TalkSASA account without visiting the TalkSASA website directly.
+
+### Dashboard Features
+
+- **Dashboard Overview**: View account statistics, balance, and group counts
+- **Profile Management**: View and manage your account profile
+- **SMS Balance**: Monitor SMS units with visual progress indicator
+- **Contact Groups**: Create, view, and delete contact groups
+- **Contact Management**: Add, view, and delete contacts within groups
+- **SMS Sending**: Send SMS messages with character counter and scheduling
+- **Templates**: Create and manage SMS templates with variables
+- **Settings**: Configure API authentication (API Key or OAuth 2.0) and default Sender ID
+
+### Dashboard Configuration
+
+The dashboard allows you to configure:
+
+1. **API Key or OAuth 2.0 credentials** for authentication
+2. **Default Sender ID** - Your preferred sender ID that will be automatically filled when sending SMS (max 11 characters)
+3. **Base URL** - API endpoint (default: `https://bulksms.talksasa.com/api/v3`)
+
+All settings are saved in browser localStorage for convenience.
+
+### Using the Dashboard
+
+The dashboard files are included in the `dashboard/` folder of the package.
+
+#### Option 1: Serve from node_modules
+
+```bash
+# Using npx serve
+npx serve node_modules/@benaah/talksasa-sms-client/dashboard
+
+# Using Python
+cd node_modules/@benaah/talksasa-sms-client/dashboard
+python -m http.server 8080
+
+# Using Node.js http-server
+npx http-server node_modules/@benaah/talksasa-sms-client/dashboard
+```
+
+#### Option 2: Copy to Your Project
+
+```bash
+# Copy dashboard to your public folder
+cp -r node_modules/@benaah/talksasa-sms-client/dashboard ./public/talksasa-admin
+
+# Or on Windows
+xcopy /E /I node_modules\@benaah\talksasa-sms-client\dashboard public\talksasa-admin
+```
+
+#### Option 3: Integrate with Your Application
+
+Copy the dashboard files (`index.html`, `styles.css`, `dashboard.js`) to your application's static assets and serve them through your web server.
+
+### Dashboard Configuration
+
+1. Open the dashboard in your browser
+2. Click the Settings icon in the sidebar
+3. Choose authentication method (API Key or OAuth 2.0)
+4. Enter your credentials
+5. Save configuration
+
+**Security Note**: For production deployments, implement a server-side proxy to avoid exposing API credentials in the browser. See `dashboard/README.md` for detailed security recommendations.
+
+### Dashboard Files
+
+- `dashboard/index.html` - Main dashboard interface
+- `dashboard/styles.css` - Professional styling
+- `dashboard/dashboard.js` - JavaScript functionality
+- `dashboard/README.md` - Detailed dashboard documentation
+
 ## Development
 
 ### Building the Package

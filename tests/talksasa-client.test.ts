@@ -72,7 +72,10 @@ describe('TalkSASAClient', () => {
         }
       } as any);
 
-      const result = await client.sendSMS({
+      // Create new client instance with the mocked axios
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+
+      const result = await testClient.sendSMS({
         recipient: '+1234567890',
         sender_id: 'TestSender',
         type: 'plain',
@@ -118,11 +121,19 @@ describe('TalkSASAClient', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
+      // Create new client instance with the mocked axios
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+
       await expect(
-        client.sendSMS({
+        testClient.sendSMS({
           recipient: '+1234567890',
           sender_id: 'TestSender',
           type: 'plain',
@@ -157,7 +168,10 @@ describe('TalkSASAClient', () => {
         }
       } as any);
 
-      const result = await client.sendCampaign({
+      // Create new client instance with the mocked axios
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+
+      const result = await testClient.sendCampaign({
         contact_list_id: 'list_123',
         sender_id: 'TestSender',
         type: 'plain',
@@ -184,10 +198,18 @@ describe('TalkSASAClient', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const result = await client.getAccountBalance();
+      // Create new client instance with the mocked axios
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+
+      const result = await testClient.getAccountBalance();
 
       expect(result.balance).toBe(100.50);
       expect(result.currency).toBe('USD');
@@ -213,10 +235,18 @@ describe('TalkSASAClient', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const result = await client.createTemplate({
+      // Create new client instance with the mocked axios
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+
+      const result = await testClient.createTemplate({
         name: 'Test Template',
         content: 'Hello {{name}}!',
         variables: ['name']
@@ -234,6 +264,240 @@ describe('TalkSASAClient', () => {
           content: ''
         })
       ).rejects.toThrow(TalkSASAValidationError);
+    });
+  });
+
+  describe('Profile API - getProfile', () => {
+    it('should get profile successfully', async () => {
+      const mockResponse = {
+        data: {
+          status: 'success',
+          data: {
+            id: 'user_123',
+            name: 'John Doe',
+            email: 'john@example.com',
+            phone: '+1234567890',
+            country: 'US',
+            timezone: 'America/New_York',
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-15T00:00:00Z',
+            status: 'active',
+            role: 'admin'
+          }
+        },
+        status: 200
+      };
+
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
+      mockedAxios.create.mockReturnValue({
+        request: mockRequest,
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
+        }
+      } as any);
+
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const result = await testClient.getProfile();
+
+      expect(result.id).toBe('user_123');
+      expect(result.name).toBe('John Doe');
+      expect(result.email).toBe('john@example.com');
+      expect(result.phone).toBe('+1234567890');
+      expect(result.country).toBe('US');
+      expect(result.timezone).toBe('America/New_York');
+      expect(result.status).toBe('active');
+      expect(result.role).toBe('admin');
+    });
+
+    it('should handle error response for getProfile', async () => {
+      const mockResponse = {
+        data: {
+          status: 'error',
+          message: 'Unauthorized access'
+        },
+        status: 200
+      };
+
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
+      mockedAxios.create.mockReturnValue({
+        request: mockRequest,
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
+        }
+      } as any);
+
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      await expect(testClient.getProfile()).rejects.toThrow('Unauthorized access');
+    });
+
+    it('should handle invalid profile response format', async () => {
+      const mockResponse = {
+        data: {
+          status: 'success',
+          data: null
+        },
+        status: 200
+      };
+
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
+      mockedAxios.create.mockReturnValue({
+        request: mockRequest,
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
+        }
+      } as any);
+
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      await expect(testClient.getProfile()).rejects.toThrow('Invalid profile response format');
+    });
+  });
+
+  describe('Profile API - getSMSUnits', () => {
+    it('should get SMS units successfully', async () => {
+      const mockResponse = {
+        data: {
+          status: 'success',
+          data: {
+            total_units: 10000,
+            used_units: 2500,
+            remaining_units: 7500,
+            unit_type: 'SMS',
+            last_updated: '2024-01-15T12:00:00Z'
+          }
+        },
+        status: 200
+      };
+
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
+      mockedAxios.create.mockReturnValue({
+        request: mockRequest,
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
+        }
+      } as any);
+
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const result = await testClient.getSMSUnits();
+
+      expect(result.total_units).toBe(10000);
+      expect(result.used_units).toBe(2500);
+      expect(result.remaining_units).toBe(7500);
+      expect(result.unit_type).toBe('SMS');
+      expect(result.last_updated).toBe('2024-01-15T12:00:00Z');
+    });
+
+    it('should handle zero units', async () => {
+      const mockResponse = {
+        data: {
+          status: 'success',
+          data: {
+            total_units: 0,
+            used_units: 0,
+            remaining_units: 0,
+            unit_type: 'SMS'
+          }
+        },
+        status: 200
+      };
+
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
+      mockedAxios.create.mockReturnValue({
+        request: mockRequest,
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
+        }
+      } as any);
+
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const result = await testClient.getSMSUnits();
+
+      expect(result.total_units).toBe(0);
+      expect(result.used_units).toBe(0);
+      expect(result.remaining_units).toBe(0);
+    });
+
+    it('should handle error response for getSMSUnits', async () => {
+      const mockResponse = {
+        data: {
+          status: 'error',
+          message: 'Failed to retrieve SMS units'
+        },
+        status: 200
+      };
+
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
+      mockedAxios.create.mockReturnValue({
+        request: mockRequest,
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
+        }
+      } as any);
+
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      await expect(testClient.getSMSUnits()).rejects.toThrow('Failed to retrieve SMS units');
+    });
+
+    it('should handle invalid SMS unit response format', async () => {
+      const mockResponse = {
+        data: {
+          status: 'success',
+          data: null
+        },
+        status: 200
+      };
+
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
+      mockedAxios.create.mockReturnValue({
+        request: mockRequest,
+        interceptors: {
+          request: { use: jest.fn() },
+          response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
+        }
+      } as any);
+
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      await expect(testClient.getSMSUnits()).rejects.toThrow('Invalid SMS unit response format');
     });
   });
 });

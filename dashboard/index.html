@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalkSASA Account Management</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <div class="logo">
+                <h2>TalkSASA</h2>
+                <p>Account Management</p>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" data-page="dashboard">Dashboard</button>
+                <button class="nav-item" data-page="profile">Profile</button>
+                <button class="nav-item" data-page="balance">SMS Balance</button>
+                <button class="nav-item" data-page="groups">Contact Groups</button>
+                <button class="nav-item" data-page="contacts">Contacts</button>
+                <button class="nav-item" data-page="send-sms">Send SMS</button>
+                <button class="nav-item" data-page="templates">Templates</button>
+                <button class="nav-item" data-page="settings">Settings</button>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <h1 id="pageTitle">Dashboard</h1>
+                <div class="user-info">
+                    <span id="userEmail">Not configured</span>
+                    <button class="btn-logout" onclick="logout()">Logout</button>
+                </div>
+            </header>
+
+            <div class="page active" id="dashboard">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-label">Total SMS Units</div>
+                            <div class="stat-value" id="dashTotalUnits">--</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-label">Used Units</div>
+                            <div class="stat-value" id="dashUsedUnits">--</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-label">Remaining Units</div>
+                            <div class="stat-value" id="dashRemainingUnits">--</div>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-content">
+                            <div class="stat-label">Contact Groups</div>
+                            <div class="stat-value" id="dashGroupCount">--</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Quick Actions</h3>
+                    <div class="action-buttons">
+                        <button class="btn btn-primary" onclick="navigateTo('send-sms')">Send SMS</button>
+                        <button class="btn btn-secondary" onclick="navigateTo('contacts')">Manage Contacts</button>
+                        <button class="btn btn-secondary" onclick="navigateTo('balance')">Check Balance</button>
+                        <button class="btn btn-secondary" onclick="navigateTo('templates')">Create Template</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="profile">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Profile Information</h3>
+                        <button class="btn btn-primary" onclick="loadProfile()">Refresh</button>
+                    </div>
+                    <div id="profileContent" class="profile-content">
+                        <p class="text-muted">Click Refresh to load your profile</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="balance">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>SMS Units Balance</h3>
+                        <button class="btn btn-primary" onclick="loadBalance()">Refresh</button>
+                    </div>
+                    <div id="balanceContent" class="balance-content">
+                        <div class="balance-stats">
+                            <div class="balance-item">
+                                <label>Total Units:</label>
+                                <span id="balTotalUnits">--</span>
+                            </div>
+                            <div class="balance-item">
+                                <label>Used Units:</label>
+                                <span id="balUsedUnits">--</span>
+                            </div>
+                            <div class="balance-item">
+                                <label>Remaining Units:</label>
+                                <span id="balRemainingUnits">--</span>
+                            </div>
+                            <div class="balance-item">
+                                <label>Unit Type:</label>
+                                <span id="balUnitType">--</span>
+                            </div>
+                            <div class="balance-item">
+                                <label>Last Updated:</label>
+                                <span id="balLastUpdated">--</span>
+                            </div>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="balanceProgress"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="groups">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Contact Groups</h3>
+                        <button class="btn btn-primary" onclick="showCreateGroupModal()">Create Group</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Group Name</th>
+                                    <th>UID</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="groupsTableBody">
+                                <tr>
+                                    <td colspan="4" class="text-center text-muted">Click "Create Group" or refresh to load groups</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="contacts">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Contacts</h3>
+                        <div class="header-actions">
+                            <select id="contactGroupFilter" class="form-select" onchange="loadContactsForGroup()" title="Select contact group">
+                                <option value="">Select a group...</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="showCreateContactModal()">Add Contact</button>
+                        </div>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Phone</th>
+                                    <th>First Name</th>
+                                    <th>Last Name</th>
+                                    <th>UID</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contactsTableBody">
+                                <tr>
+                                    <td colspan="6" class="text-center text-muted">Select a group to view contacts</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="send-sms">
+                <div class="card">
+                    <h3>Send SMS</h3>
+                    <form id="smsForm" class="form">
+                        <div class="form-group">
+                            <label for="smsRecipient">Recipient Phone Number(s):</label>
+                            <input type="text" id="smsRecipient" class="form-control" placeholder="+1234567890" required>
+                            <small class="form-text">Separate multiple numbers with commas</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="smsSenderId">Sender ID:</label>
+                            <input type="text" id="smsSenderId" class="form-control" placeholder="YourBrand" required maxlength="11">
+                            <small class="form-text">Maximum 11 characters</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="smsMessage">Message:</label>
+                            <textarea id="smsMessage" class="form-control" rows="4" placeholder="Your message here..." required title="SMS message content"></textarea>
+                            <small class="form-text">Characters: <span id="charCount">0</span> | Segments: <span id="segmentCount">0</span></small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="smsSchedule">Schedule Time (optional):</label>
+                                <input type="datetime-local" id="smsSchedule" class="form-control" title="Schedule message delivery">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="smsDltId">DLT Template ID (optional):</label>
+                                <input type="text" id="smsDltId" class="form-control" placeholder="1234567890">
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg">Send SMS</button>
+                    </form>
+
+                    <div id="smsResult" class="result-box"></div>
+                </div>
+            </div>
+
+            <div class="page" id="templates">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>SMS Templates</h3>
+                        <button class="btn btn-primary" onclick="showCreateTemplateModal()">Create Template</button>
+                    </div>
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Content</th>
+                                    <th>Variables</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="templatesTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No templates found</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="page" id="settings">
+                <div class="card">
+                    <h3>API Configuration</h3>
+                    <form id="settingsForm" class="form">
+                        <div class="form-group">
+                            <label for="authMethod">Authentication Method:</label>
+                            <select id="authMethod" class="form-control" title="Select authentication method">
+                                <option value="apiKey">API Key (Bearer Token)</option>
+                                <option value="oauth2">OAuth 2.0</option>
+                            </select>
+                        </div>
+
+                        <div id="apiKeySection">
+                            <div class="form-group">
+                                <label for="apiKey">API Key:</label>
+                                <input type="password" id="apiKey" class="form-control" placeholder="Your TalkSASA API key">
+                            </div>
+                        </div>
+
+                        <div id="oauth2Section" class="hidden">
+                            <div class="form-group">
+                                <label for="clientId">Client ID:</label>
+                                <input type="text" id="clientId" class="form-control">
+                            </div>
+                            <div class="form-group">
+                                <label for="clientSecret">Client Secret:</label>
+                                <input type="password" id="clientSecret" class="form-control">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="defaultSenderId">Default Sender ID:</label>
+                            <input type="text" id="defaultSenderId" class="form-control" placeholder="e.g., YourApp" maxlength="11" title="Default sender ID for SMS messages (max 11 characters)">
+                            <small class="form-text">This will be pre-filled when sending SMS. Maximum 11 characters.</small>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="baseUrl">Base URL:</label>
+                            <input type="text" id="baseUrl" class="form-control" value="https://bulksms.talksasa.com/api/v3" title="API base URL">
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">Save Configuration</button>
+                    </form>
+
+                    <div id="settingsStatus" class="alert"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="createGroupModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Contact Group</h3>
+                <button class="modal-close" onclick="closeModal('createGroupModal')">&times;</button>
+            </div>
+            <form id="createGroupForm" class="modal-body">
+                <div class="form-group">
+                    <label for="newGroupName">Group Name:</label>
+                    <input type="text" id="newGroupName" class="form-control" placeholder="e.g., VIP Customers" required title="Enter group name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createGroupModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="createContactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add Contact</h3>
+                <button class="modal-close" onclick="closeModal('createContactModal')">&times;</button>
+            </div>
+            <form id="createContactForm" class="modal-body">
+                <div class="form-group">
+                    <label for="newContactGroup">Select Group:</label>
+                    <select id="newContactGroup" class="form-control" required title="Select contact group">
+                        <option value="">Select a group...</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="newContactPhone">Phone Number:</label>
+                    <input type="text" id="newContactPhone" class="form-control" placeholder="+1234567890" required title="Enter phone number">
+                </div>
+                <div class="form-group">
+                    <label for="newContactFirstName">First Name:</label>
+                    <input type="text" id="newContactFirstName" class="form-control" placeholder="John" title="Enter first name">
+                </div>
+                <div class="form-group">
+                    <label for="newContactLastName">Last Name:</label>
+                    <input type="text" id="newContactLastName" class="form-control" placeholder="Doe" title="Enter last name">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createContactModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Contact</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="createTemplateModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create Template</h3>
+                <button class="modal-close" onclick="closeModal('createTemplateModal')">&times;</button>
+            </div>
+            <form id="createTemplateForm" class="modal-body">
+                <div class="form-group">
+                    <label for="newTemplateName">Template Name:</label>
+                    <input type="text" id="newTemplateName" class="form-control" placeholder="e.g., Welcome Message" required title="Enter template name">
+                </div>
+                <div class="form-group">
+                    <label for="newTemplateContent">Content:</label>
+                    <textarea id="newTemplateContent" class="form-control" rows="4" placeholder="Hello {{name}}, welcome to {{company}}!" required title="Enter template content"></textarea>
+                    <small class="form-text">Use {{variable}} for placeholders</small>
+                </div>
+                <div class="form-group">
+                    <label for="newTemplateVariables">Variables (comma-separated):</label>
+                    <input type="text" id="newTemplateVariables" class="form-control" placeholder="name,company">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('createTemplateModal')">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Template</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="notification" class="notification"></div>
+
+    <script src="dashboard.js"></script>
+</body>
+</html>

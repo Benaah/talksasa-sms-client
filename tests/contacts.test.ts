@@ -49,15 +49,22 @@ describe('TalkSASAClient - Contacts API', () => {
         status: 200
       };
 
+      const mockRequest = jest.fn().mockResolvedValue(mockResponse);
       mockedAxios.create.mockReturnValue({
-        request: jest.fn().mockResolvedValue(mockResponse),
+        request: mockRequest,
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const contact = await client.createContact(mockGroupId, {
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const contact = await testClient.createContact(mockGroupId, {
         phone: '1234567890',
         first_name: 'John',
         last_name: 'Doe'
@@ -109,10 +116,16 @@ describe('TalkSASAClient - Contacts API', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const contact = await client.getContact(mockGroupId, mockContactUid);
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const contact = await testClient.getContact(mockGroupId, mockContactUid);
 
       expect(contact.uid).toBe(mockContactUid);
       expect(contact.phone).toBe('1234567890');
@@ -147,10 +160,16 @@ describe('TalkSASAClient - Contacts API', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const contact = await client.updateContact(mockGroupId, mockContactUid, {
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const contact = await testClient.updateContact(mockGroupId, mockContactUid, {
         phone: '0987654321',
         first_name: 'Jane',
         last_name: 'Smith'
@@ -230,10 +249,16 @@ describe('TalkSASAClient - Contacts API', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const result = await client.getContacts(mockGroupId);
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const result = await testClient.getContacts(mockGroupId);
 
       expect(result.contacts).toHaveLength(2);
       expect(result.contacts[0].uid).toBe('contact1');
@@ -267,10 +292,16 @@ describe('TalkSASAClient - Contacts API', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const group = await client.createContactGroup({
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const group = await testClient.createContactGroup({
         name: 'Test Group'
       });
 
@@ -311,10 +342,16 @@ describe('TalkSASAClient - Contacts API', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const groups = await client.getContactGroups();
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const groups = await testClient.getContactGroups();
 
       expect(groups).toHaveLength(2);
       expect(groups[0].uid).toBe('group1');
@@ -340,10 +377,16 @@ describe('TalkSASAClient - Contacts API', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const group = await client.getContactGroup(mockGroupId);
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const group = await testClient.getContactGroup(mockGroupId);
 
       expect(group.uid).toBe(mockGroupId);
       expect(group.name).toBe('Test Group');
@@ -376,10 +419,16 @@ describe('TalkSASAClient - Contacts API', () => {
         interceptors: {
           request: { use: jest.fn() },
           response: { use: jest.fn() }
+        },
+        defaults: {
+          headers: {
+            common: {}
+          }
         }
       } as any);
 
-      const group = await client.updateContactGroup(mockGroupId, {
+      const testClient = new TalkSASAClient({ apiKey: mockApiKey });
+      const group = await testClient.updateContactGroup(mockGroupId, {
         name: 'Updated Group'
       });
 
