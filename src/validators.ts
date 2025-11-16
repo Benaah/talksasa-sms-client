@@ -599,7 +599,7 @@ export class Validators {
 
     // Security: Basic URL validation with protocol restrictions
     try {
-      const url = new URL(new URL(trimmed));
+      const url = new URL(trimmed);
       
       // Only allow HTTP and HTTPS protocols
       if (!['http:', 'https:'].includes(url.protocol)) {
