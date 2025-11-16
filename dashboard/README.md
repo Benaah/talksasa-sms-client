@@ -213,7 +213,7 @@ For issues related to:
 
 ## Version
 
-Dashboard Version: 1.0.0
+Dashboard Version: 1.1.0
 Compatible with: TalkSASA API v3
 
 ---

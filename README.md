@@ -793,6 +793,11 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## Changelog
 
+### 1.1.0
+- Fixed API key validation to support TalkSASA API key format with pipe character 
+- Improved API key validation to accept all printable ASCII characters
+- Enhanced security while maintaining compatibility with various API key formats
+
 ### 1.0.0
 - Initial release
 - Single and bulk SMS sending
