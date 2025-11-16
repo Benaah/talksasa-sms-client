@@ -133,8 +133,10 @@ export class Validators {
 
     // Security: Validate API key format to prevent injection
     const trimmed = apiKey.trim();
-    // More restrictive pattern - only alphanumeric, hyphens, and underscores
-    if (!/^[a-zA-Z0-9_-]+$/.test(trimmed)) {
+    
+    // Allow most printable ASCII characters (common in API keys, tokens, etc.)
+    // Exclude control characters, newlines, and other dangerous characters
+    if (!/^[\x20-\x7E]+$/.test(trimmed)) {
       throw new TalkSASAValidationError('API key contains invalid characters');
     }
     
@@ -597,7 +599,7 @@ export class Validators {
 
     // Security: Basic URL validation with protocol restrictions
     try {
-      const url = new URL(trimmed);
+      const url = new URL(new URL(trimmed));
       
       // Only allow HTTP and HTTPS protocols
       if (!['http:', 'https:'].includes(url.protocol)) {
