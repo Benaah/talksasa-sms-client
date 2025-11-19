@@ -52,6 +52,11 @@ describe('Validators', () => {
       expect(Validators.validateApiKey('  valid-api-key-123  ')).toBe('valid-api-key-123');
     });
 
+    it('should accept API keys with pipe characters', () => {
+      expect(Validators.validateApiKey('valid-api|key-123')).toBe('valid-api|key-123');
+      expect(Validators.validateApiKey('api|key|with|pipes')).toBe('api|key|with|pipes');
+    });
+
     it('should throw error for invalid API keys', () => {
       expect(() => Validators.validateApiKey('')).toThrow(TalkSASAValidationError);
       expect(() => Validators.validateApiKey('   ')).toThrow(TalkSASAValidationError);

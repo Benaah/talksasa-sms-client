@@ -26,13 +26,13 @@ A comprehensive JavaScript/TypeScript client for the TalkSASA SMS Gateway API. T
 ## Installation
 
 ```bash
-npm install talksasa-sms-client
+npm install @benaah/talksasa-sms-client
 ```
 
 ## Quick Start
 
 ```javascript
-const { TalkSASAClient } = require('talksasa-sms-client');
+const { TalkSASAClient } = require('@benaah/talksasa-sms-client');
 
 // Initialize the client
 const client = new TalkSASAClient({
@@ -93,7 +93,7 @@ async function sendMessages() {
 ## TypeScript Usage
 
 ```typescript
-import { TalkSASAClient, SMSMessage, SMSResponse } from 'talksasa-sms-client';
+import { TalkSASAClient, SMSMessage, SMSResponse } from '@benaah/talksasa-sms-client';
 
 const client = new TalkSASAClient({
   apiKey: 'your-api-key-here'
@@ -290,7 +290,7 @@ const {
   TalkSASAAuthenticationError,
   TalkSASAQuotaExceededError,
   TalkSASAInsufficientBalanceError
-} = require('talksasa-sms-client');
+} = require('@benaah/talksasa-sms-client');
 
 try {
   await client.sendSMS(message);
@@ -314,7 +314,7 @@ try {
 ### Basic SMS Sending
 
 ```javascript
-const { TalkSASAClient } = require('talksasa-sms-client');
+const { TalkSASAClient } = require('@benaah/talksasa-sms-client');
 
 const client = new TalkSASAClient({
   apiKey: process.env.TALKSASA_API_KEY
@@ -553,7 +553,7 @@ try {
 ### OAuth 2.0 Authentication
 
 ```javascript
-const { TalkSASAClient } = require('talksasa-sms-client');
+const { TalkSASAClient } = require('@benaah/talksasa-sms-client');
 
 // Initialize with OAuth 2.0
 const client = new TalkSASAClient({
@@ -619,7 +619,7 @@ for (const contact of contacts) {
 ### Advanced OAuth 2.0 Usage
 
 ```javascript
-const { TalkSASAClient, TalkSASAOAuth2Client } = require('talksasa-sms-client');
+const { TalkSASAClient, TalkSASAOAuth2Client } = require('@benaah/talksasa-sms-client');
 
 // Create OAuth 2.0 client directly
 const oauthClient = new TalkSASAOAuth2Client({
@@ -717,7 +717,7 @@ cd node_modules/@benaah/talksasa-sms-client/dashboard
 python -m http.server 8080
 
 # Using Node.js http-server
-npx http-server node_modules/@benaah/talksasa-sms-client/dashboard
+npx http-server node_modules/@benaah/talksasa-sms-client/dashboard -p 8080
 ```
 
 #### Option 2: Copy to Your Project
@@ -792,6 +792,13 @@ MIT License - see [LICENSE](LICENSE) file for details.
 -  Documentation: [TalkSASA API Docs](https://docs.talksasa.com)
 
 ## Changelog
+
+### 2.0.0
+- Fixed API key validation to support TalkSASA API key format with pipe character (`|`)
+- Improved API key validation to accept all printable ASCII characters including pipes
+- Enhanced security while maintaining compatibility with various API key formats
+- Added test coverage for API keys with pipe characters
+- Published to npm public registry
 
 ### 1.1.0
 - Fixed API key validation to support TalkSASA API key format with pipe character 

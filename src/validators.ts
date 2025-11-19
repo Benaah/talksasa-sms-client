@@ -135,6 +135,7 @@ export class Validators {
     const trimmed = apiKey.trim();
     
     // Allow most printable ASCII characters (common in API keys, tokens, etc.)
+    // This includes pipe (|) and other special characters that may be used in API keys
     // Exclude control characters, newlines, and other dangerous characters
     if (!/^[\x20-\x7E]+$/.test(trimmed)) {
       throw new TalkSASAValidationError('API key contains invalid characters');
